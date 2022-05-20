@@ -1,0 +1,21 @@
+version: '3'
+# Docker is a way to pretend to have a dedicated computer
+#   running an application
+# Applications that require complicated dependencies will
+#   require long setup/admin times
+# You may want to run 2 applications which have conflicting
+#   dependencies i.e. App1 -> node14, App2 -> node15
+# Docker-compose is a way to list several docker containers
+#   in a single file
+
+services: # list of containers (pretend computer)
+  database: # the name that I picked for this service
+    image: 'postgres:latest'
+    ports:
+      - 5432:5432
+    environment: # Global variables to an entire computer
+      POSTGRES_USER: username
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: default
+    volumes: # persists data between restarts
+      - ./db-data/:/var/lib/postgresql/data/
