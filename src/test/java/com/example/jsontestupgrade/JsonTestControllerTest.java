@@ -25,6 +25,9 @@ import static org.mockito.Mockito.when;
 // shall not mock annotation
 @ExtendWith(MockitoExtension.class)
 class JsonTestControllerTest {
+    //JsonTestController jsonTestController = new JsonTestController();
+
+    // if you don't need to inject then you don't need inject mock
     @InjectMocks
     JsonTestController jsonTestController;
 
@@ -52,31 +55,34 @@ class JsonTestControllerTest {
 
     @Test
     void itShouldReturnDateTimeMilliseconds() {
-        final LocalDate expectedDate = LocalDate.now();
+        final LocalDate expectedDate = LocalDate.of(2020, 2,14);
         final DateTimeFormatter mockDateFormat = DateTimeFormatter.ofPattern("MM-dd-yyyy");
         final String expectedDateFormatted = mockDateFormat.format(expectedDate);
-        final LocalTime expectedTime = LocalTime.now();
+        final LocalTime expectedTime = LocalTime.of(03,15,05);
         final DateTimeFormatter mockTimeFormat = DateTimeFormatter.ofPattern("hh:mm:ss a");
         final String expectedTimeFormatted = mockTimeFormat.format(expectedTime);
-        Date date1 = new Date();
-        final long milliseconds = date1.getTime();
+//        Date date1 = new Date();
+//        final long milliseconds = date1.getTime();
+        //System.out.println(milliseconds);
+        final long milliseconds = 1234567890123L;
 
         final DateTime expectedDateTime = new DateTime(expectedDateFormatted, milliseconds, expectedTimeFormatted);
-        Mockito.mockStatic(LocalDate.class).when(LocalDate::now)
+
+        final var mockedDate = Mockito.mockStatic(LocalDate.class); // prepare to change
+        mockedDate.when(LocalDate::now)  // change source code
                 .thenReturn(expectedDate);
-        Mockito.mockStatic(LocalTime.class).when(LocalTime::now)
+        final var mockedTime= Mockito.mockStatic(LocalTime.class);
+        mockedTime.when(LocalTime::now)
                 .thenReturn(expectedTime);
-        //when(mockDate.getTime()).thenReturn(milliseconds);
-        assertEquals(expectedDateTime.milliseconds, jsonTestController.dateTime().milliseconds);
+//        Mockito.mockStatic(LocalDate.class).when(LocalDate::now)
+//                .thenReturn(expectedDate);
+//        Mockito.mockStatic(LocalTime.class).when(LocalTime::now)
+//                .thenReturn(expectedTime);
+        when(mockDate.getTime()).thenReturn(1234567890123L);
+        assertEquals(expectedDateTime, jsonTestController.dateTime());
+        mockedDate.close(); // undo the change
+        mockedTime.close(); // undo the change
     }
-//    @Test
-//    void itShouldReturnDateTimeMilliseconds1(){
-//        final String expectedDate = "05-23-2020";
-//        final String expectedTime = "05:15:05 AM";
-//        final long milliseconds = 123456789123L;
-//        final DateTime expectedDateTime = new DateTime(expectedDate, milliseconds, expectedTime);
-//        assertEquals(expectedDateTime, jsonTestController.dateTime());
-//    }
 
     @Test
     void itShouldReturnInputAsMD5() throws NoSuchAlgorithmException {

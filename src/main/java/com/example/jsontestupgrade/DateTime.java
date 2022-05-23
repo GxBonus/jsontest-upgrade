@@ -5,26 +5,29 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Date;
 import java.util.Objects;
 
 @JsonPropertyOrder({"Date", "milliseconds_since_epoch", "Time"})
 public class DateTime {
-//    @JsonProperty("Date")
-//    LocalDate localDate;
-//    @JsonProperty("Time")
-//    LocalTime localTime;
+
     @JsonProperty("Date")
-    public String formattedDate;
+    String formattedDate;
     @JsonProperty("milliseconds_since_epoch")
-    public long milliseconds;
+    long milliseconds;
     @JsonProperty("Time")
-    public String formattedTime;
+    String formattedTime;
+
+    //Date date1;
+
 
     public DateTime(String formattedDate, long milliseconds, String formattedTime) {
         this.formattedDate = formattedDate;
         this.milliseconds = milliseconds;
         this.formattedTime = formattedTime;
+        //this.date1 = date1;
     }
+
 
     @Override
     public boolean equals(Object o) {

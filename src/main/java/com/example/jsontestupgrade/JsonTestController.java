@@ -4,8 +4,6 @@ package com.example.jsontestupgrade;
 // i.e. http://jsontest.com/
 
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -15,8 +13,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAccessor;
 import java.util.Date;
 import java.util.Map;
 
@@ -24,18 +23,24 @@ import java.util.Map;
 @RestController
 @RequestMapping("/")
 public class JsonTestController {
-//    Date date;
-//
-//    @Autowired
-//    public JsonTestController(Date date){
-//        this.date = date;
-//    }
+    private final Date date;
+
+
+    public JsonTestController(Date date){
+        this.date = date;
+    }
+    public JsonTestController(){
+        this.date = new Date();
+    }
+
 
 
     @GetMapping("/ip")
     public Ip getIpAddress(HttpServletRequest request){
 
-        return new Ip(request.getRemoteAddr());
+        Ip ipAddress = new Ip(request.getRemoteAddr());
+
+        return ipAddress;
     }
 
     @GetMapping("/headers")
@@ -49,12 +54,13 @@ public class JsonTestController {
         LocalDate localDate = LocalDate.now();
         DateTimeFormatter formatDateObj = DateTimeFormatter.ofPattern("MM-dd-yyy");
         String localDateFormatted = formatDateObj.format(localDate);
+        System.out.println(localDate);
 
         LocalTime localTime = LocalTime.now();
         DateTimeFormatter formatTimeObj = DateTimeFormatter.ofPattern("hh:mm:ss a");
         String localTimeFormatted = formatTimeObj.format(localTime);
 
-        Date date = new Date();
+//        Date date = new Date();
         long localTimeMilliseconds = date.getTime();
 
         return new DateTime(localDateFormatted, localTimeMilliseconds, localTimeFormatted);
