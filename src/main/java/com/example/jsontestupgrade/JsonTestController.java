@@ -6,8 +6,10 @@ package com.example.jsontestupgrade;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 
@@ -31,14 +33,16 @@ public class JsonTestController {
     private final HashMap<UUID, Long> tokenMap;
 
     private final Date date;
+    private final RestTemplate rest;
 
 
     // Mockito
     public JsonTestController(Date date, @NonNull UserAccountRepository repository,
-                              @NonNull HashMap<UUID, Long> tokenMap){
+                              @NonNull HashMap<UUID, Long> tokenMap, RestTemplate rest){
         this.date = date;
         this.repository = repository;
         this.tokenMap = tokenMap;
+        this.rest = rest;
     }
     // Spring
     @Autowired
@@ -46,32 +50,47 @@ public class JsonTestController {
         this.date = new Date();
         this.repository =repository;
         this.tokenMap = new HashMap<>();
+        this.rest = new RestTemplate();
+    }
+
+    public void checkAuthorized(UUID token) {
+        String url = "http://localhost:8081/isAuthorized?token=" + token;
+        final ResponseEntity<Void> response = rest.getForEntity(url, Void.class);
+
+        switch (response.getStatusCode()){
+            case OK:
+                return;
+            case UNAUTHORIZED:
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+            default:
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
     }
 
 
-
     @GetMapping("/ip")
-    public Ip getIpAddress(HttpServletRequest request){
+    public Ip getIpAddress(UUID token, HttpServletRequest request){
+        checkAuthorized(token);
 
         Ip ipAddress = new Ip(request.getRemoteAddr());
 
-        return ipAddress;
+            return ipAddress;
     }
 
     @GetMapping("/headers")
     public Headers headers(UUID token,@RequestHeader Map<String, String> allHeaders){
-        if (!tokenMap.containsKey(token))
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        checkAuthorized(token);
+
         return new Headers(allHeaders);
 
     }
 
     @GetMapping("/date")
-    public DateTime dateTime(){
+    public DateTime dateTime(UUID token){
         LocalDate localDate = LocalDate.now();
         DateTimeFormatter formatDateObj = DateTimeFormatter.ofPattern("MM-dd-yyy");
         String localDateFormatted = formatDateObj.format(localDate);
-        System.out.println(localDate);
 
         LocalTime localTime = LocalTime.now();
         DateTimeFormatter formatTimeObj = DateTimeFormatter.ofPattern("hh:mm:ss a");
@@ -79,19 +98,23 @@ public class JsonTestController {
 
 //        Date date = new Date();
         long localTimeMilliseconds = date.getTime();
-
-        return new DateTime(localDateFormatted, localTimeMilliseconds, localTimeFormatted);
+        if (!tokenMap.containsKey(token))
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        else
+            return new DateTime(localDateFormatted, localTimeMilliseconds, localTimeFormatted);
     }
 
 
     @GetMapping("/md5")
-    public mdFive md5(@RequestParam String text) throws NoSuchAlgorithmException {
+    public mdFive md5(UUID token,@RequestParam String text) throws NoSuchAlgorithmException {
         MessageDigest messageDigest = MessageDigest.getInstance("MD5");
         messageDigest.update(text.getBytes());
         byte[] digest = messageDigest.digest();
         String textHash = DatatypeConverter.printHexBinary(digest).toLowerCase();
 
-        return new mdFive(text, textHash);
+        checkAuthorized(token);
+
+            return new mdFive(text, textHash);
     }
 
     @GetMapping("/login")
@@ -116,8 +139,11 @@ public class JsonTestController {
     }
 
     @GetMapping("/logout")
-    public Long logout(UUID token) {
+    public void logout(UUID token) {
 
-        return tokenMap.remove(token);
+        tokenMap.remove(token);
     }
+
+
+
 }
