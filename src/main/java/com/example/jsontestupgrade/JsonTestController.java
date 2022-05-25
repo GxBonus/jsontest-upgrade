@@ -98,9 +98,8 @@ public class JsonTestController {
 
 //        Date date = new Date();
         long localTimeMilliseconds = date.getTime();
-        if (!tokenMap.containsKey(token))
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        else
+        checkAuthorized(token);
+
             return new DateTime(localDateFormatted, localTimeMilliseconds, localTimeFormatted);
     }
 
